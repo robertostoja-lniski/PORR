@@ -8,10 +8,11 @@
 #include <omp.h>
 #include <map>
 #include <climits>
+#include <atomic>
 
 #define PROGRESS_CHECK 0
 
-using cntMap = std::map<std::string, int>;
+using cntMap = std::map<std::string, std::atomic<int>>;
 
 void removeNotAllowedChars(std::string& word) {
     std::string res;
@@ -29,7 +30,7 @@ void removeNotAllowedChars(std::string& word) {
     }
 }
 
-void readData(std::vector<std::string>& words, std::string filename) {
+void readData(std::vector<std::string>& words, cntMap& map, std::string filename) {
     std::fstream file;
     std::string word;
     file.open(filename);
@@ -38,6 +39,7 @@ void readData(std::vector<std::string>& words, std::string filename) {
         removeNotAllowedChars(word);
         if (!word.empty()) {
             words.push_back(word);
+            map.emplace(word, 0);
         }
     }
 }
@@ -124,7 +126,8 @@ int main(int argc, char** argv) {
     std::string filename = argv[1];
 	std::vector<std::string> words;
 
-    readData(words, filename);
+    cntMap initMap;
+    readData(words, initMap, filename);
 
     cntMap map;
     auto execTime = checkExecTime(map, words);
@@ -132,8 +135,12 @@ int main(int argc, char** argv) {
 
     std::cout << "Thread num, elapsed, optimised elapsed, shortening percent" << std::endl;
     for (int i = 1; i <= threadNum; i++) {
-        cntMap map;
-        auto ompExecTime = checkOmpExecTime(map, words, i);
+        auto ompExecTime = checkOmpExecTime(initMap, words, i);
+
+        for (auto& [key, val] : initMap) {
+            initMap.emplace(key, 0);
+        }
+
         std::cout << "|" << i << "|" << execTime << "|" << ompExecTime << "|";
         std::cout << 100 - static_cast<double>(ompExecTime) * 100 / static_cast<double>(execTime) << std::endl;
     }
