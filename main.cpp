@@ -142,6 +142,7 @@ int main(int argc, char** argv) {
 	std::cout << "words.size(): " << words.size() << std::endl;
     std::cout << "Elapsed: " << execTime << std::endl;
     std::cout << "Omp elapsed: " << ompExecTime << std::endl;
+    std::cout << "Skrócono wykonanie o: " << 100 - static_cast<double>(ompExecTime) * 100 / static_cast<double>(execTime) << "%" << std::endl;
 
     return 0;
 } 
