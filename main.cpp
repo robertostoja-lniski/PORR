@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <cmath>
-//#include <omp.h>
+#include <omp.h>
 #include <map>
 #include <climits>
 
-#define PROGRESS_CHECK 1
+#define PROGRESS_CHECK 0
 
 using cntMap = std::map<std::string, int>;
 
@@ -85,13 +85,13 @@ double checkOmpExecTime(cntMap& map, std::vector<std::string>& words) {
         throw std::runtime_error("Shortening dataset may lead to unexpected results! Choose smaller dataset");
     }
     int words_size = words.size(); //zeby for bylo w kanonicznej postaci
-//	omp_set_num_threads(5);
+	omp_set_num_threads(4);
 
-//	#pragma omp parallel shared(words_size)
+	#pragma omp parallel shared(words_size)
     auto start = std::chrono::high_resolution_clock::now();
 
     {
-//		#pragma omp for
+		#pragma omp for
         for (size_t i = 0; i < words_size ; i++) {
 
 #if PROGRESS_CHECK == 1
