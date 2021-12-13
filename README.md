@@ -6,7 +6,6 @@ Podsumowanie badań
 
 Stacja:
 Lenovo Ideapad, Intel(R) Core(TM) i5-6300HQ CPU @ 2.30GHz (4 wątki), GeForce GTX 950M, Ram: 8GB DDR3
-Liczba wątków omp: 4
 
 | Liczba wątków omp  | Czas wykonania bez optymalizacji | Czas wykonania z optymalizacją | Procentowe skrócenie czasu |
 | ------------------ | -------------------------------- | ------------------------------ | -------------------------- |
