@@ -86,9 +86,9 @@ double checkOmpExecTime(cntMap& map, std::vector<std::string>& words) {
     }
     int words_size = words.size(); //zeby for bylo w kanonicznej postaci
 	omp_set_num_threads(4);
+    auto start = std::chrono::high_resolution_clock::now();
 
 	#pragma omp parallel shared(words_size)
-    auto start = std::chrono::high_resolution_clock::now();
 
     {
 		#pragma omp for
