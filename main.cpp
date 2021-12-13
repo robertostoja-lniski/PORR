@@ -63,13 +63,6 @@ double checkExecTime(cntMap& map, std::vector<std::string>& words) {
 
     {
         for (size_t i = 0; i < words_size ; i++) {
-
-#if PROGRESS_CHECK == 1
-            auto progressStart = std::chrono::high_resolution_clock::now();
-            printPogres(i, words_size);
-            auto progressEnd = std::chrono::high_resolution_clock::now();
-            start -= (progressEnd - progressStart);
-#endif
             map[words[i]]+=1;
         }
     }
@@ -78,28 +71,20 @@ double checkExecTime(cntMap& map, std::vector<std::string>& words) {
     return elapsedTime;
 }
 
-double checkOmpExecTime(cntMap& map, std::vector<std::string>& words) {
+double checkOmpExecTime(cntMap& map, std::vector<std::string>& words, int thread) {
     size_t size = words.size();
     std::cout << "size of " << size << std::endl;
     if (words.size() > INT_MAX) {
         throw std::runtime_error("Shortening dataset may lead to unexpected results! Choose smaller dataset");
     }
     int words_size = words.size(); //zeby for bylo w kanonicznej postaci
-	omp_set_num_threads(4);
+	omp_set_num_threads(thread);
     auto start = std::chrono::high_resolution_clock::now();
 
 	#pragma omp parallel shared(words_size)
-
     {
 		#pragma omp for
         for (size_t i = 0; i < words_size ; i++) {
-
-#if PROGRESS_CHECK == 1
-            auto progressStart = std::chrono::high_resolution_clock::now();
-            printPogres(i, words_size);
-            auto progressEnd = std::chrono::high_resolution_clock::now();
-            start -= (progressEnd - progressStart);
-#endif
             map[words[i]]+=1;
         }
     }
@@ -123,8 +108,16 @@ void printResult(const cntMap& map, int num) {
 
 int main(int argc, char** argv) {
 
-    if (argc != 2) {
-        std::cout << "No filename with data provided" << std::endl;
+    if (argc != 3) {
+        std::cerr << "run ./app file num_threads" << std::endl;
+        return 1;
+    }
+
+    int threadNum;
+    try {
+        threadNum = std::atoi(argv[2]);
+    } catch (...) {
+        std::cerr << "Not a numeric thread num!" << std::endl;
         return 1;
     }
 
@@ -137,12 +130,13 @@ int main(int argc, char** argv) {
     auto execTime = checkExecTime(map, words);
     printResult(map, 500);
 
-    auto ompExecTime = checkOmpExecTime(map, words);
-
-	std::cout << "words.size(): " << words.size() << std::endl;
-    std::cout << "Elapsed: " << execTime << std::endl;
-    std::cout << "Omp elapsed: " << ompExecTime << std::endl;
-    std::cout << "Skrócono wykonanie o: " << 100 - static_cast<double>(ompExecTime) * 100 / static_cast<double>(execTime) << "%" << std::endl;
+    std::cout << "Thread num, elapsed, optimised elapsed, shortening percent" << std::endl;
+    for (int i = 1; i <= threadNum; i++) {
+        cntMap map;
+        auto ompExecTime = checkOmpExecTime(map, words, i);
+        std::cout << "|" << i << "|" << execTime << "|" << ompExecTime << "|";
+        std::cout << 100 - static_cast<double>(ompExecTime) * 100 / static_cast<double>(execTime) << std::endl;
+    }
 
     return 0;
 } 
